@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceTracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+        :root {
+          --bg: #0f1117;
+          --bg2: #171923;
+          --bg3: #1e2130;
+          --border: #2a2f45;
+          --text: #e8eaf6;
+          --text2: #8892b0;
+          --accent: #7c6af7;
+          --accent2: #56cfb2;
+          --red: #ff6b8a;
+          --green: #56cfb2;
+          --yellow: #ffd166;
+          --card-bg: #1a1f35;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+          font-family: 'DM Sans', sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100vh;
+        }
+
+        /* ===== AUTH PAGE ===== */
+        #auth-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: radial-gradient(ellipse at 20% 50%, #1a1060 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 20%, #0d2a2a 0%, transparent 50%),
+                      var(--bg);
+        }
+
+        .auth-box {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 48px;
+          width: 420px;
+          box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+        }
+
+        .auth-logo {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+
+        .auth-logo .icon {
+          width: 56px;
+          height: 56px;
+          background: linear-gradient(135deg, var(--accent), var(--accent2));
+          border-radius: 16px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          margin-bottom: 16px;
+        }
+
+        .auth-logo h1 {
+          font-size: 22px;
+          font-weight: 600;
+          letter-spacing: -0.5px;
+        }
+
+        .auth-logo p { color: var(--text2); font-size: 14px; margin-top: 4px; }
+
+        .tab-switcher {
+          display: flex;
+          background: var(--bg3);
+          border-radius: 10px;
+          padding: 4px;
+          margin-bottom: 28px;
+        }
+
+        .tab-btn {
+          flex: 1;
+          padding: 8px;
+          border: none;
+          background: transparent;
+          color: var(--text2);
+          border-radius: 7px;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all .2s;
+        }
+
+        .tab-btn.active {
+          background: var(--accent);
+          color: white;
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-group label {
+          display: block;
+          font-size: 13px;
+          color: var(--text2);
+          margin-bottom: 6px;
+          font-weight: 500;
+        }
+
+        .form-group input {
+          width: 100%;
+          padding: 12px 16px;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 14px;
+          outline: none;
+          transition: border-color .2s;
+        }
+
+        .form-group input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+          width: 100%;
+          padding: 13px;
+          background: linear-gradient(135deg, var(--accent), #9b59f7);
+          border: none;
+          border-radius: 10px;
+          color: white;
+          font-family: inherit;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-top: 8px;
+          transition: opacity .2s, transform .1s;
+        }
+
+        .btn-primary:hover { opacity: .9; }
+        .btn-primary:active { transform: scale(.98); }
+
+        .auth-error {
+          background: rgba(255,107,138,.1);
+          border: 1px solid rgba(255,107,138,.3);
+          color: var(--red);
+          padding: 10px 14px;
+          border-radius: 8px;
+          font-size: 13px;
+          margin-bottom: 16px;
+          display: none;
+        }
+
+        /* ===== MAIN APP ===== */
+        #app-page { display: none; min-height: 100vh; }
+
+        .sidebar {
+          position: fixed;
+          left: 0; top: 0; bottom: 0;
+          width: 240px;
+          background: var(--bg2);
+          border-right: 1px solid var(--border);
+          display: flex;
+          flex-direction: column;
+          padding: 24px 16px;
+          z-index: 100;
+        }
+
+        .sidebar-logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 12px;
+          margin-bottom: 32px;
+        }
+
+        .sidebar-logo .icon {
+          width: 36px; height: 36px;
+          background: linear-gradient(135deg, var(--accent), var(--accent2));
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 16px;
+        }
+
+        .sidebar-logo span { font-size: 16px; font-weight: 600; }
+
+        .nav-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          cursor: pointer;
+          color: var(--text2);
+          font-size: 14px;
+          font-weight: 500;
+          margin-bottom: 4px;
+          transition: all .2s;
+          border: none;
+          background: none;
+          width: 100%;
+          text-align: left;
+          font-family: inherit;
+        }
+
+        .nav-item:hover { background: var(--bg3); color: var(--text); }
+        .nav-item.active { background: rgba(124,106,247,.15); color: var(--accent); }
+        .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-bottom {
+          margin-top: auto;
+          border-top: 1px solid var(--border);
+          padding-top: 16px;
+        }
+
+        .user-info {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          margin-bottom: 8px;
+        }
+
+        .avatar {
+          width: 36px; height: 36px;
+          background: linear-gradient(135deg, var(--accent), var(--accent2));
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 14px; font-weight: 600; color: white;
+          flex-shrink: 0;
+        }
+
+        .user-info .name { font-size: 13px; font-weight: 500; }
+        .user-info .email { font-size: 11px; color: var(--text2); }
+
+        .btn-logout {
+          display: flex; align-items: center; gap: 8px;
+          padding: 9px 12px;
+          border-radius: 8px;
+          border: none; background: none;
+          color: var(--red); font-size: 13px; font-weight: 500;
+          cursor: pointer; width: 100%; font-family: inherit;
+          transition: background .2s;
+        }
+
+        .btn-logout:hover { background: rgba(255,107,138,.1); }
+
+        /* ===== CONTENT ===== */
+        .main-content {
+          margin-left: 240px;
+          padding: 32px;
+          min-height: 100vh;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .page-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 28px;
+        }
+
+        .page-title { font-size: 22px; font-weight: 600; }
+        .page-subtitle { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+        /* ===== CARDS ===== */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+
+        .stat-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 24px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          top: -30px; right: -30px;
+          width: 100px; height: 100px;
+          border-radius: 50%;
+          opacity: .08;
+        }
+
+        .stat-card.income::before { background: var(--green); }
+        .stat-card.expense::before { background: var(--red); }
+        .stat-card.balance::before { background: var(--accent); }
+
+        .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+        .stat-value { font-size: 28px; font-weight: 600; margin: 8px 0 4px; font-family: 'DM Mono', monospace; }
+        .stat-value.income { color: var(--green); }
+        .stat-value.expense { color: var(--red); }
+        .stat-value.balance { color: var(--accent); }
+        .stat-badge { font-size: 12px; color: var(--text2); }
+
+        /* ===== CHARTS ===== */
+        .charts-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 28px;
+        }
+
+        .chart-card {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 24px;
+        }
+
+        .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+        .chart-container { position: relative; height: 200px; }
+
+        /* ===== TABLE ===== */
+        .card {
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        .card-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .card-title { font-size: 14px; font-weight: 600; }
+
+        .btn-add {
+          display: flex; align-items: center; gap: 6px;
+          padding: 8px 16px;
+          background: var(--accent);
+          border: none; border-radius: 8px;
+          color: white; font-size: 13px; font-weight: 600;
+          cursor: pointer; font-family: inherit;
+          transition: opacity .2s;
+        }
+
+        .btn-add:hover { opacity: .85; }
+
+        .filter-bar {
+          display: flex;
+          gap: 10px;
+          padding: 16px 24px;
+          border-bottom: 1px solid var(--border);
+          flex-wrap: wrap;
+        }
+
+        .filter-bar select, .filter-bar input {
+          padding: 7px 12px;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 13px;
+          outline: none;
+        }
+
+        .btn-filter {
+          padding: 7px 14px;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          color: var(--text2);
+          font-size: 13px;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all .2s;
+        }
+
+        .btn-filter:hover { border-color: var(--accent); color: var(--accent); }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+          padding: 12px 24px;
+          text-align: left;
+          font-size: 11px;
+          color: var(--text2);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: .5px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        td {
+          padding: 14px 24px;
+          font-size: 14px;
+          border-bottom: 1px solid rgba(42,47,69,.5);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255,255,255,.02); }
+
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        .badge.income { background: rgba(86,207,178,.15); color: var(--green); }
+        .badge.expense { background: rgba(255,107,138,.15); color: var(--red); }
+
+        .amount-income { color: var(--green); font-weight: 600; font-family: 'DM Mono', monospace; }
+        .amount-expense { color: var(--red); font-weight: 600; font-family: 'DM Mono', monospace; }
+
+        .action-btns { display: flex; gap: 8px; }
+
+        .btn-icon {
+          width: 30px; height: 30px;
+          border: 1px solid var(--border);
+          border-radius: 7px;
+          background: none;
+          color: var(--text2);
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px;
+          transition: all .2s;
+        }
+
+        .btn-icon.edit:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,.1); }
+        .btn-icon.del:hover { border-color: var(--red); color: var(--red); background: rgba(255,107,138,.1); }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,.7);
+          backdrop-filter: blur(4px);
+          z-index: 200;
+          display: none;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+          background: var(--bg2);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 32px;
+          width: 440px;
+          box-shadow: 0 40px 80px rgba(0,0,0,.6);
+          animation: modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 24px;
+        }
+
+        .modal-title { font-size: 17px; font-weight: 600; }
+
+        .btn-close {
+          width: 32px; height: 32px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: none;
+          color: var(--text2);
+          cursor: pointer;
+          font-size: 16px;
+          display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal .form-group { margin-bottom: 14px; }
+
+        .modal select {
+          width: 100%;
+          padding: 12px 16px;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 14px;
+          outline: none;
+        }
+
+        .modal-footer {
+          display: flex;
+          gap: 10px;
+          margin-top: 24px;
+        }
+
+        .btn-secondary {
+          flex: 1;
+          padding: 12px;
+          background: var(--bg3);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text2);
+          font-family: inherit;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+        }
+
+        .modal-footer .btn-primary { flex: 2; width: auto; margin: 0; }
+
+        /* ===== CATEGORY SELECT + NEW INPUT ===== */
+        .cat-new-wrap {
+          margin-top: 8px;
+          display: none;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .cat-new-wrap.show { display: flex; }
+        .cat-new-wrap input {
+          width: 100%;
+          padding: 10px 14px;
+          background: var(--bg3);
+          border: 1px dashed rgba(124,106,247,.5);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 14px;
+          outline: none;
+          transition: border-color .2s;
+        }
+        .cat-new-wrap input:focus { border-color: var(--accent); }
+        .cat-new-hint {
+          font-size: 11px;
+          color: var(--accent);
+          padding-left: 2px;
+        }
+
+        /* ===== REPORT ===== */
+        .month-picker {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .month-picker input {
+          padding: 9px 14px;
+          background: var(--card-bg);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--text);
+          font-family: inherit;
+          font-size: 14px;
+          outline: none;
+        }
+
+        .btn-search {
+          padding: 9px 20px;
+          background: var(--accent);
+          border: none; border-radius: 10px;
+          color: white; font-size: 14px; font-weight: 600;
+          cursor: pointer; font-family: inherit;
+        }
+
+        .report-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .empty-state {
+          text-align: center;
+          padding: 60px 24px;
+          color: var(--text2);
+        }
+
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ===== LOADING ===== */
+        .loading {
+          text-align: center;
+          padding: 40px;
+          color: var(--text2);
+          font-size: 14px;
+        }
+
+        .toast {
+          position: fixed;
+          bottom: 24px; right: 24px;
+          padding: 12px 20px;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 500;
+          z-index: 999;
+          display: none;
+          animation: toastIn .3s ease;
+        }
+
+        @keyframes toastIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast.success { background: rgba(86,207,178,.2); border: 1px solid rgba(86,207,178,.4); color: var(--green); }
+        .toast.error { background: rgba(255,107,138,.2); border: 1px solid rgba(255,107,138,.4); color: var(--red); }
+
+        .text-date { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); }
+    </style>
+</head>
+<body>
+
+<!-- ===== AUTH PAGE ===== -->
+<div id="auth-page">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <div class="icon">💰</div>
+            <h1>FinanceTracker</h1>
+            <p>Quản lý tài chính cá nhân</p>
+        </div>
+
+        <div class="tab-switcher">
+            <button class="tab-btn active" onclick="switchTab('login')">Đăng nhập</button>
+            <button class="tab-btn" onclick="switchTab('register')">Đăng ký</button>
+        </div>
+
+        <div id="auth-error" class="auth-error"></div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="login-password" placeholder="••••••">
+            </div>
+            <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" style="display:none">
+            <div class="form-group">
+                <label>Họ và tên</label>
+                <input type="text" id="reg-name" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="reg-password" placeholder="Tối thiểu 6 ký tự">
+            </div>
+            <button class="btn-primary" onclick="doRegister()">Tạo tài khoản</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app-page">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-logo">
+            <div class="icon">💰</div>
+            <span>FinanceTracker</span>
+        </div>
+
+        <button class="nav-item active" onclick="showPage('dashboard')">
+            <span class="nav-icon">📊</span> Dashboard
+        </button>
+        <button class="nav-item" onclick="showPage('transactions')">
+            <span class="nav-icon">💸</span> Giao dịch
+        </button>
+        <button class="nav-item" onclick="showPage('categories')">
+            <span class="nav-icon">📂</span> Danh mục
+        </button>
+        <button class="nav-item" onclick="showPage('reports')">
+            <span class="nav-icon">📈</span> Báo cáo
+        </button>
+
+        <div class="sidebar-bottom">
+            <div class="user-info">
+                <div class="avatar" id="user-avatar">A</div>
+                <div>
+                    <div class="name" id="user-name">Loading...</div>
+                    <div class="email" id="user-email"></div>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="doLogout()">
+                🚪 Đăng xuất
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- DASHBOARD PAGE -->
+        <div id="page-dashboard" class="page active">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Dashboard</div>
+                    <div class="page-subtitle">Tổng quan tài chính của bạn</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card income">
+                    <div class="stat-label">Tổng thu nhập</div>
+                    <div class="stat-value income" id="stat-income">0 ₫</div>
+                    <div class="stat-badge">Tổng tất cả thời gian</div>
+                </div>
+                <div class="stat-card expense">
+                    <div class="stat-label">Tổng chi tiêu</div>
+                    <div class="stat-value expense" id="stat-expense">0 ₫</div>
+                    <div class="stat-badge">Tổng tất cả thời gian</div>
+                </div>
+                <div class="stat-card balance">
+                    <div class="stat-label">Số dư hiện tại</div>
+                    <div class="stat-value balance" id="stat-balance">0 ₫</div>
+                    <div class="stat-badge">Thu - Chi</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">Tỷ lệ Thu / Chi</div>
+                    <div class="chart-container">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-title">Giao dịch gần đây theo ngày</div>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Giao dịch gần đây</span>
+                    <button class="btn-add" onclick="showPage('transactions')">Xem tất cả →</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Mô tả</th>
+                        <th>Danh mục</th>
+                        <th>Ngày</th>
+                        <th>Số tiền</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recent-tbody">
+                    <tr><td colspan="4" class="loading">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONS PAGE -->
+        <div id="page-transactions" class="page">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Giao dịch</div>
+                    <div class="page-subtitle">Quản lý thu chi của bạn</div>
+                </div>
+                <button class="btn-add" onclick="openModal()">+ Thêm giao dịch</button>
+            </div>
+
+            <div class="card">
+                <div class="filter-bar">
+                    <select id="filter-type" onchange="loadTransactions()">
+                        <option value="">Tất cả loại</option>
+                        <option value="INCOME">Thu nhập</option>
+                        <option value="EXPENSE">Chi tiêu</option>
+                    </select>
+                    <input type="date" id="filter-from" placeholder="Từ ngày">
+                    <input type="date" id="filter-to" placeholder="Đến ngày">
+                    <button class="btn-filter" onclick="loadTransactions()">🔍 Lọc</button>
+                    <button class="btn-filter" onclick="clearFilter()">✕ Xóa lọc</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Mô tả</th>
+                        <th>Danh mục</th>
+                        <th>Loại</th>
+                        <th>Ngày</th>
+                        <th>Số tiền</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tx-tbody">
+                    <tr><td colspan="6" class="loading">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CATEGORIES PAGE -->
+        <div id="page-categories" class="page">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Danh mục</div>
+                    <div class="page-subtitle">Quản lý danh mục thu chi</div>
+                </div>
+                <button class="btn-add" onclick="openCatModal()">+ Thêm danh mục</button>
+            </div>
+
+            <div class="card">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Tên danh mục</th>
+                        <th>Loại</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="cat-tbody">
+                    <tr><td colspan="3" class="loading">Đang tải...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REPORTS PAGE -->
+        <div id="page-reports" class="page">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Báo cáo</div>
+                    <div class="page-subtitle">Thống kê tài chính theo tháng</div>
+                </div>
+            </div>
+
+            <div class="month-picker">
+                <input type="month" id="report-month" value="">
+                <button class="btn-search" onclick="loadReport()">📊 Xem báo cáo</button>
+            </div>
+
+            <div id="report-content">
+                <div class="empty-state">
+                    <div class="icon">📅</div>
+                    <p>Chọn tháng và bấm Xem báo cáo</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== TRANSACTION MODAL ===== -->
+<div id="tx-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-title">Thêm giao dịch</div>
+            <button class="btn-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="form-group">
+            <label>Số tiền (VNĐ)</label>
+            <input type="number" id="tx-amount" placeholder="500000">
+        </div>
+        <div class="form-group">
+            <label>Mô tả</label>
+            <input type="text" id="tx-desc" placeholder="Ăn sáng, Lương tháng...">
+        </div>
+        <div class="form-group">
+            <label>Loại</label>
+            <select id="tx-cat-type" onchange="onTypeChange()">
+                <option value="EXPENSE">💸 Chi tiêu</option>
+                <option value="INCOME">💰 Thu nhập</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Danh mục</label>
+            <select id="tx-cat-select" onchange="onCatSelectChange()">
+                <option value="">-- Đang tải... --</option>
+            </select>
+            <div class="cat-new-wrap" id="cat-new-wrap">
+                <input type="text" id="tx-new-cat-name" placeholder="Nhập tên danh mục mới...">
+                <span class="cat-new-hint">💡 Danh mục sẽ được tạo tự động khi bạn lưu giao dịch</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Ngày giờ</label>
+            <input type="datetime-local" id="tx-date">
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal()">Hủy</button>
+            <button class="btn-primary" onclick="saveTx()">Lưu giao dịch</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CATEGORY MODAL ===== -->
+<div id="cat-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="cat-modal-title">Thêm danh mục</div>
+            <button class="btn-close" onclick="closeCatModal()">✕</button>
+        </div>
+        <div class="form-group">
+            <label>Tên danh mục</label>
+            <input type="text" id="cat-name" placeholder="Ăn uống, Lương...">
+        </div>
+        <div class="form-group">
+            <label>Loại</label>
+            <select id="cat-type">
+                <option value="EXPENSE">💸 Chi tiêu</option>
+                <option value="INCOME">💰 Thu nhập</option>
+            </select>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeCatModal()">Hủy</button>
+            <button class="btn-primary" onclick="saveCat()">Lưu danh mục</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+    const API = 'http://localhost:8080/api';
+    let token = localStorage.getItem('ft_token');
+    let currentUser = JSON.parse(localStorage.getItem('ft_user') || 'null');
+    let editingTxId = null;
+    let editingCatId = null;
+    let donutChart = null;
+    let barChart = null;
+    let categoriesCache = [];
+
+    // ===== INIT =====
+    window.onload = () => {
+      const now = new Date();
+      document.getElementById('report-month').value =
+        `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+      if (token && currentUser) {
+        showApp();
+      }
+    };
+
+    // ===== AUTH =====
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b,i) =>
+        b.classList.toggle('active', (tab==='login' && i===0) || (tab==='register' && i===1)));
+      document.getElementById('login-form').style.display = tab==='login' ? '' : 'none';
+      document.getElementById('register-form').style.display = tab==='register' ? '' : 'none';
+      document.getElementById('auth-error').style.display = 'none';
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      if (!email || !password) return showAuthError('Vui lòng điền đầy đủ thông tin!');
+
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+        const data = await res.json();
+        if (data.success) {
+          token = data.data.token;
+          currentUser = {email: data.data.email, fullName: data.data.fullName};
+          localStorage.setItem('ft_token', token);
+          localStorage.setItem('ft_user', JSON.stringify(currentUser));
+          showApp();
+        } else {
+          showAuthError(data.message || 'Đăng nhập thất bại!');
+        }
+      } catch(e) {
+        showAuthError('Không kết nối được server!');
+      }
+    }
+
+    async function doRegister() {
+      const fullName = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-password').value;
+      if (!fullName || !email || !password) return showAuthError('Vui lòng điền đầy đủ!');
+
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({fullName, email, password})
+        });
+        const data = await res.json();
+        if (data.success) {
+          token = data.data.token;
+          currentUser = {email: data.data.email, fullName: data.data.fullName};
+          localStorage.setItem('ft_token', token);
+          localStorage.setItem('ft_user', JSON.stringify(currentUser));
+          showApp();
+        } else {
+          showAuthError(data.message || 'Đăng ký thất bại!');
+        }
+      } catch(e) {
+        showAuthError('Không kết nối được server!');
+      }
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('auth-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function doLogout() {
+      token = null; currentUser = null;
+      localStorage.removeItem('ft_token');
+      localStorage.removeItem('ft_user');
+      document.getElementById('auth-page').style.display = 'flex';
+      document.getElementById('app-page').style.display = 'none';
+    }
+
+    // ===== APP =====
+    function showApp() {
+      document.getElementById('auth-page').style.display = 'none';
+      document.getElementById('app-page').style.display = 'block';
+      document.getElementById('user-name').textContent = currentUser.fullName;
+      document.getElementById('user-email').textContent = currentUser.email;
+      document.getElementById('user-avatar').textContent = currentUser.fullName[0].toUpperCase();
+      showPage('dashboard');
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(`page-${page}`).classList.add('active');
+      const idx = {dashboard:0,transactions:1,categories:2,reports:3}[page];
+      document.querySelectorAll('.nav-item')[idx].classList.add('active');
+
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'transactions') loadTransactions();
+      if (page === 'categories') loadCategories();
+    }
+
+    // ===== API HELPER =====
+    async function api(path, method='GET', body=null) {
+      const opts = {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(`${API}${path}`, opts);
+      return res.json();
+    }
+
+    // ===== DASHBOARD =====
+    async function loadDashboard() {
+      const [summary, txRes] = await Promise.all([
+        api('/transactions/summary'),
+        api('/transactions')
+      ]);
+
+      if (summary.success) {
+        const {income, expense, balance} = summary.data;
+        document.getElementById('stat-income').textContent = formatMoney(income);
+        document.getElementById('stat-expense').textContent = formatMoney(expense);
+        document.getElementById('stat-balance').textContent = formatMoney(balance);
+        renderDonut(income, expense);
+      }
+
+      if (txRes.success) {
+        const txs = txRes.data.slice(0,5);
+        document.getElementById('recent-tbody').innerHTML = txs.length
+          ? txs.map(t => `
+            <tr>
+              <td>${t.description}</td>
+              <td><span style="color:var(--text2);font-size:13px">${t.categoryName}</span></td>
+              <td><span class="text-date">${t.transactionDate?.slice(0,10)}</span></td>
+              <td class="${t.categoryType==='INCOME'?'amount-income':'amount-expense'}">
+                ${t.categoryType==='INCOME'?'+':'-'}${formatMoney(t.amount)}
+              </td>
+            </tr>`).join('')
+          : '<tr><td colspan="4" class="loading">Chưa có giao dịch nào</td></tr>';
+
+        renderBar(txRes.data);
+      }
+    }
+
+    function renderDonut(income, expense) {
+      if (donutChart) donutChart.destroy();
+      const ctx = document.getElementById('donutChart').getContext('2d');
+      donutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Thu nhập', 'Chi tiêu'],
+          datasets: [{
+            data: [income, expense],
+            backgroundColor: ['rgba(86,207,178,.8)', 'rgba(255,107,138,.8)'],
+            borderColor: ['#56cfb2', '#ff6b8a'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#8892b0', font: { family: 'DM Sans' } } }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    function renderBar(txs) {
+      if (barChart) barChart.destroy();
+      const byDay = {};
+      txs.forEach(t => {
+        const day = t.transactionDate?.slice(0,10);
+        if (!day) return;
+        if (!byDay[day]) byDay[day] = {income:0, expense:0};
+        if (t.categoryType === 'INCOME') byDay[day].income += t.amount;
+        else byDay[day].expense += t.amount;
+      });
+      const days = Object.keys(byDay).sort().slice(-7);
+      const ctx = document.getElementById('barChart').getContext('2d');
+      barChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: days.map(d => d.slice(5)),
+          datasets: [
+            { label: 'Thu', data: days.map(d => byDay[d].income), backgroundColor: 'rgba(86,207,178,.7)' },
+            { label: 'Chi', data: days.map(d => byDay[d].expense), backgroundColor: 'rgba(255,107,138,.7)' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#8892b0', font: { family: 'DM Sans' } } } },
+          scales: {
+            x: { ticks: { color: '#8892b0' }, grid: { color: '#2a2f45' } },
+            y: { ticks: { color: '#8892b0' }, grid: { color: '#2a2f45' } }
+          }
+        }
+      });
+    }
+
+    // ===== TRANSACTIONS =====
+    async function loadTransactions() {
+      const type = document.getElementById('filter-type')?.value || '';
+      const from = document.getElementById('filter-from')?.value;
+      const to = document.getElementById('filter-to')?.value;
+
+      let url = '/transactions';
+      const params = [];
+      if (type) params.push(`type=${type}`);
+      if (from) params.push(`from=${from}T00:00:00`);
+      if (to) params.push(`to=${to}T23:59:59`);
+      if (params.length) url = `/transactions/filter?${params.join('&')}`;
+
+      const res = await api(url);
+      const tbody = document.getElementById('tx-tbody');
+      if (!res.success || !res.data.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="icon">📭</div><p>Không có giao dịch nào</p></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = res.data.map(t => `
+        <tr>
+          <td>${t.description}</td>
+          <td><span style="color:var(--text2);font-size:13px">${t.categoryName}</span></td>
+          <td><span class="badge ${t.categoryType==='INCOME'?'income':'expense'}">${t.categoryType==='INCOME'?'Thu nhập':'Chi tiêu'}</span></td>
+          <td><span class="text-date">${t.transactionDate?.slice(0,16)?.replace('T',' ')}</span></td>
+          <td class="${t.categoryType==='INCOME'?'amount-income':'amount-expense'}">
+            ${t.categoryType==='INCOME'?'+':'-'}${formatMoney(t.amount)}
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-icon edit" onclick="editTx(${t.id},'${t.description}',${t.amount},'${t.categoryName}','${t.categoryType}','${t.transactionDate}')">✏️</button>
+              <button class="btn-icon del" onclick="deleteTx(${t.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    function clearFilter() {
+      document.getElementById('filter-type').value = '';
+      document.getElementById('filter-from').value = '';
+      document.getElementById('filter-to').value = '';
+      loadTransactions();
+    }
+
+    // ===== CATEGORY SELECT HELPERS =====
+    async function loadCategorySelect(filterType, selectedName) {
+      if (!categoriesCache.length) {
+        const res = await api('/categories');
+        if (res.success) categoriesCache = res.data;
+      }
+      const filtered = categoriesCache.filter(c => c.type === filterType);
+      const sel = document.getElementById('tx-cat-select');
+      sel.innerHTML =
+        (filtered.length === 0 ? `<option value="" disabled>-- Chưa có danh mục ${filterType === 'EXPENSE' ? 'chi tiêu' : 'thu nhập'} --</option>` : '') +
+        filtered.map(c =>
+          `<option value="${c.name}" ${c.name === selectedName ? 'selected' : ''}>${c.name}</option>`
+        ).join('') +
+        `<option value="__new__">✏️ Nhập danh mục mới...</option>`;
+      // Nếu không tìm thấy tên đang sửa trong list → chọn mục nhập mới
+      if (selectedName && !filtered.find(c => c.name === selectedName)) {
+        sel.value = '__new__';
+        document.getElementById('tx-new-cat-name').value = selectedName;
+      }
+      onCatSelectChange();
+    }
+
+    function onTypeChange() {
+      categoriesCache = [];
+      loadCategorySelect(document.getElementById('tx-cat-type').value, null);
+    }
+
+    function onCatSelectChange() {
+      const isNew = document.getElementById('tx-cat-select').value === '__new__';
+      document.getElementById('cat-new-wrap').classList.toggle('show', isNew);
+      if (isNew) setTimeout(() => document.getElementById('tx-new-cat-name').focus(), 50);
+    }
+
+    function openModal() {
+      editingTxId = null;
+      categoriesCache = [];
+      document.getElementById('modal-title').textContent = 'Thêm giao dịch';
+      document.getElementById('tx-amount').value = '';
+      document.getElementById('tx-desc').value = '';
+      document.getElementById('tx-cat-type').value = 'EXPENSE';
+      document.getElementById('tx-new-cat-name').value = '';
+      document.getElementById('tx-date').value = new Date().toISOString().slice(0,16);
+      document.getElementById('tx-modal').classList.add('open');
+      loadCategorySelect('EXPENSE', null);
+    }
+
+    function editTx(id, desc, amount, catName, catType, date) {
+      editingTxId = id;
+      categoriesCache = [];
+      document.getElementById('modal-title').textContent = 'Sửa giao dịch';
+      document.getElementById('tx-amount').value = amount;
+      document.getElementById('tx-desc').value = desc;
+      document.getElementById('tx-cat-type').value = catType;
+      document.getElementById('tx-new-cat-name').value = '';
+      document.getElementById('tx-date').value = date?.slice(0,16);
+      document.getElementById('tx-modal').classList.add('open');
+      loadCategorySelect(catType, catName);
+    }
+
+    function closeModal() { document.getElementById('tx-modal').classList.remove('open'); }
+
+    async function saveTx() {
+      const amount     = parseFloat(document.getElementById('tx-amount').value);
+      const desc       = document.getElementById('tx-desc').value;
+      const catType    = document.getElementById('tx-cat-type').value;
+      const catSel     = document.getElementById('tx-cat-select').value;
+      const date       = document.getElementById('tx-date').value;
+      const isNew      = catSel === '__new__';
+      const newCatName = document.getElementById('tx-new-cat-name').value.trim();
+
+      if (!amount || !desc) return showToast('Vui lòng điền đầy đủ!', 'error');
+      if (isNew && !newCatName) return showToast('Vui lòng nhập tên danh mục mới!', 'error');
+      if (!isNew && !catSel) return showToast('Vui lòng chọn danh mục!', 'error');
+
+      const categoryName = isNew ? newCatName : catSel;
+
+      // Tạo danh mục mới trước nếu cần
+      if (isNew) {
+        const catRes = await api('/categories', 'POST', { name: newCatName, type: catType });
+        if (!catRes.success) return showToast('Không thể tạo danh mục mới!', 'error');
+        categoriesCache = [];
+      }
+
+      const body = { amount, description: desc, categoryName, categoryType: catType, transactionDate: date };
+      const res = editingTxId
+        ? await api(`/transactions/${editingTxId}`, 'PUT', body)
+        : await api('/transactions', 'POST', body);
+
+      if (res.success) {
+        closeModal();
+        loadTransactions();
+        loadDashboard();
+        showToast(
+          editingTxId ? 'Đã cập nhật!' : (isNew ? `Đã thêm + tạo danh mục "${categoryName}"!` : 'Đã thêm giao dịch!'),
+          'success'
+        );
+      } else {
+        showToast(res.message || 'Có lỗi xảy ra!', 'error');
+      }
+    }
+
+    async function deleteTx(id) {
+      if (!confirm('Xóa giao dịch này?')) return;
+      const res = await api(`/transactions/${id}`, 'DELETE');
+      if (res.success) {
+        loadTransactions();
+        loadDashboard();
+        showToast('Đã xóa!', 'success');
+      }
+    }
+
+    // ===== CATEGORIES =====
+    async function loadCategories() {
+      const res = await api('/categories');
+      const tbody = document.getElementById('cat-tbody');
+      if (!res.success || !res.data.length) {
+        tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><div class="icon">📂</div><p>Chưa có danh mục nào</p></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = res.data.map(c => `
+        <tr>
+          <td>${c.name}</td>
+          <td><span class="badge ${c.type==='INCOME'?'income':'expense'}">${c.type==='INCOME'?'Thu nhập':'Chi tiêu'}</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-icon edit" onclick="editCat(${c.id},'${c.name}','${c.type}')">✏️</button>
+              <button class="btn-icon del" onclick="deleteCat(${c.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+
+    function openCatModal() {
+      editingCatId = null;
+      document.getElementById('cat-modal-title').textContent = 'Thêm danh mục';
+      document.getElementById('cat-name').value = '';
+      document.getElementById('cat-type').value = 'EXPENSE';
+      document.getElementById('cat-modal').classList.add('open');
+    }
+
+    function editCat(id, name, type) {
+      editingCatId = id;
+      document.getElementById('cat-modal-title').textContent = 'Sửa danh mục';
+      document.getElementById('cat-name').value = name;
+      document.getElementById('cat-type').value = type;
+      document.getElementById('cat-modal').classList.add('open');
+    }
+
+    function closeCatModal() { document.getElementById('cat-modal').classList.remove('open'); }
+
+    async function saveCat() {
+      const body = {
+        name: document.getElementById('cat-name').value,
+        type: document.getElementById('cat-type').value
+      };
+      if (!body.name) return showToast('Vui lòng nhập tên!', 'error');
+      const res = editingCatId
+        ? await api(`/categories/${editingCatId}`, 'PUT', body)
+        : await api('/categories', 'POST', body);
+      if (res.success) {
+        closeCatModal();
+        loadCategories();
+        categoriesCache = [];
+        showToast('Đã lưu!', 'success');
+      }
+    }
+
+    async function deleteCat(id) {
+      if (!confirm('Xóa danh mục này?')) return;
+      const res = await api(`/categories/${id}`, 'DELETE');
+      if (res.success) { loadCategories(); categoriesCache = []; showToast('Đã xóa!', 'success'); }
+    }
+
+    // ===== REPORTS =====
+    async function loadReport() {
+      const month = document.getElementById('report-month').value;
+      if (!month) return showToast('Chọn tháng đi!', 'error');
+
+      const [year, m] = month.split('-');
+      const from = `${month}-01T00:00:00`;
+      const lastDay = new Date(year, m, 0).getDate();
+      const to = `${month}-${lastDay}T23:59:59`;
+
+      const res = await api(`/transactions/filter?from=${from}&to=${to}`);
+
+      if (!res.success) return;
+      const txs = res.data;
+
+      if (!txs.length) {
+        document.getElementById('report-content').innerHTML = `
+          <div class="empty-state"><div class="icon">📭</div><p>Không có dữ liệu tháng ${m}/${year}</p></div>`;
+        return;
+      }
+
+      const income = txs.filter(t => t.categoryType==='INCOME').reduce((s,t) => s+t.amount, 0);
+      const expense = txs.filter(t => t.categoryType==='EXPENSE').reduce((s,t) => s+t.amount, 0);
+      const balance = income - expense;
+
+      // Group by category
+      const byCat = {};
+      txs.forEach(t => {
+        if (!byCat[t.categoryName]) byCat[t.categoryName] = {type: t.categoryType, total: 0, count: 0};
+        byCat[t.categoryName].total += t.amount;
+        byCat[t.categoryName].count++;
+      });
+
+      const catRows = Object.entries(byCat)
+        .sort((a,b) => b[1].total - a[1].total)
+        .map(([name, {type, total, count}]) => `
+          <tr>
+            <td>${name}</td>
+            <td><span class="badge ${type==='INCOME'?'income':'expense'}">${type==='INCOME'?'Thu':'Chi'}</span></td>
+            <td style="text-align:right">${count} giao dịch</td>
+            <td class="${type==='INCOME'?'amount-income':'amount-expense'}" style="text-align:right">
+              ${formatMoney(total)}
+            </td>
+          </tr>`).join('');
+
+      document.getElementById('report-content').innerHTML = `
+        <div class="report-grid">
+          <div class="stat-card income">
+            <div class="stat-label">Thu nhập tháng ${m}/${year}</div>
+            <div class="stat-value income">${formatMoney(income)}</div>
+          </div>
+          <div class="stat-card expense">
+            <div class="stat-label">Chi tiêu tháng ${m}/${year}</div>
+            <div class="stat-value expense">${formatMoney(expense)}</div>
+          </div>
+        </div>
+        <div class="stat-card balance" style="margin-bottom:24px">
+          <div class="stat-label">Số dư tháng ${m}/${year}</div>
+          <div class="stat-value ${balance>=0?'balance':'expense'}">${formatMoney(balance)}</div>
+          <div class="stat-badge">Tổng ${txs.length} giao dịch</div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Chi tiết theo danh mục</span></div>
+          <table>
+            <thead>
+              <tr><th>Danh mục</th><th>Loại</th><th style="text-align:right">Số GD</th><th style="text-align:right">Tổng tiền</th></tr>
+            </thead>
+            <tbody>${catRows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    // ===== HELPERS =====
+    function formatMoney(amount) {
+      return new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(amount || 0);
+    }
+
+    function showToast(msg, type='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = `toast ${type}`;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('tx-modal').classList.contains('open')) saveTx();
+        if (document.getElementById('cat-modal').classList.contains('open')) saveCat();
+        if (document.getElementById('login-form').style.display !== 'none') doLogin();
+        if (document.getElementById('register-form').style.display !== 'none') doRegister();
+      }
+      if (e.key === 'Escape') { closeModal(); closeCatModal(); }
+    });
+</script>
+</body>
+</html>
